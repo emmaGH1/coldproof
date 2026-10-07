@@ -2,6 +2,7 @@
 """Live outbox restart/recovery test against the running, seeded Compose stack."""
 
 import subprocess
+import os
 import sys
 import time
 import uuid
@@ -15,7 +16,8 @@ sys.path.insert(0, str(ROOT / "simulator"))
 from publish import canonical, psycopg, readings, runtime, sensor_key  # noqa: E402
 
 config = runtime()
-compose = ["docker", "compose", "--env-file", str(ROOT / "infra/.env"), "-f", str(ROOT / "infra/compose.yaml")]
+compose = ["docker", "compose", "--project-name", os.environ.get("COLDPROOF_PROJECT", "coldproof"),
+           "--env-file", str(ROOT / "infra/.env"), "-f", str(ROOT / "infra/compose.yaml")]
 key = sensor_key()
 reading = next(readings(key))
 reading["shipmentId"] = "SHP-OUTBOX-" + uuid.uuid4().hex[:8]
