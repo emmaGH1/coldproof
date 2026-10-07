@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if [ "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || true)" != "22" ]; then
+  export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+  if [ -f "$NVM_DIR/nvm.sh" ]; then
+    . "$NVM_DIR/nvm.sh"
+    nvm use 22 >/dev/null
+  fi
+fi
+if [ "$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || true)" != "22" ]; then
+  echo "Node.js 22 is required. Install it and put node/npm on PATH." >&2
+  exit 1
+fi
+python3 -m venv "$ROOT/.venv"
+"$ROOT/.venv/bin/pip" install -r "$ROOT/simulator/requirements.txt" -r "$ROOT/messages-api/requirements.txt"
+if [ "${1:-}" = "--incremental" ]; then
+  npm --prefix "$ROOT/web" install
+else
+  npm --prefix "$ROOT/web" ci
+fi

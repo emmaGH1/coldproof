@@ -1,0 +1,78 @@
+#!/usr/bin/env python3
+"""Live integration checks. Mutates only the seeded DB, restores it in finally."""
+import importlib.util
+import json
+import os
+import time
+from pathlib import Path
+
+import requests
+
+root = Path(__file__).resolve().parent.parent
+spec = importlib.util.spec_from_file_location("publisher", root / "simulator/publish.py")
+publisher = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(publisher)
+base = os.environ.get("WEB_URL", "http://localhost:3000")
+
+
+def get(path, expected=200):
+    response = requests.get(base + path, timeout=60)
+    assert response.status_code == expected, (path, response.status_code, response.text)
+    return response.json()
+
+
+def run():
+    seed = json.loads((root / ".local/seed.json").read_text())
+    block_id = seed[82]["blockId"]
+    config = publisher.runtime()
+    publisher.mutate("reset", 83)
+    assert get("/api/health")["database"] == "ok"
+    assert get("/api/events")["count"] == 96
+    assert get(f"/api/events?blockId={block_id}")["count"] == 1
+    assert get("/api/events?tag=coldproof.coldchain&sensor=PAL-0042-S1")["count"] == 96
+    assert get("/api/events?tag=nonexistent")["count"] == 0
+    assert get("/api/events?from=2026-10-06T19:45:00Z&to=2026-10-06T21:00:00Z")["count"] == 6
+    get("/api/events?from=not-a-date", 400)
+    get("/api/events/invalid/verify", 400)
+    get("/api/events/" + "0x" + "f" * 64 + "/verify", 404)
+    assert get("/api/events?sensor=%27%20OR%201%3D1--")["count"] == 0
+    for _ in range(30):
+        all_events = get("/api/shipments/SHP-VLC-2210")["all"]
+        if all(x["verdict"] == "ANCHORED" for x in all_events):
+            break
+        time.sleep(1)
+    assert len(all_events) == 96
+    assert all(x["verdict"] == "ANCHORED" for x in all_events)
+    assert all_events[82]["checks"] == dict.fromkeys(["solid", "content", "signature", "chain"], "pass")
+    assert get(f"/api/events/{block_id}/block")["payload"]["type"] == 5
+    assert requests.post(base + "/api/ingest", json={}).status_code == 401
+    headers = {"Authorization": "Bearer " + config["INGEST_TOKEN"]}
+    assert requests.post(base + "/api/ingest", json={}, headers=headers).status_code == 400
+    envelope = {**seed[82]}
+    assert requests.post(base + "/api/ingest", json=envelope, headers=headers).status_code == 200
+    envelope["data"] = {**envelope["data"], "tempCenti": 500}
+    assert requests.post(base + "/api/ingest", json=envelope, headers=headers).status_code == 400
+    print("PASS: 96 real blocks, four integrity checks, REST filters, auth, schema, idempotent ingest")
+    try:
+        publisher.mutate("tamper", 83)
+        changed = get(f"/api/events/{block_id}/verify")
+        assert changed["verdict"] == "TAMPERED"
+        assert changed["checks"]["solid"] == "pass"
+        assert changed["checks"]["content"] == changed["checks"]["signature"] == "fail"
+        assert changed["difference"] == [{"field": "tempCenti", "stored": 500, "tangle": 1024}]
+        assert requests.post(base + "/api/ingest", json=seed[82], headers=headers).status_code == 409
+        next_block = seed[83]["blockId"]
+        assert get(f"/api/events/{next_block}/verify")["checks"]["chain"] == "fail"
+        publisher.mutate("reset", 83)
+        assert get(f"/api/events/{block_id}/verify")["verdict"] == "ANCHORED"
+        publisher.mutate("delete", 83)
+        get(f"/api/events/{block_id}/verify", 404)
+        assert get(f"/api/events/{next_block}/verify")["verdict"] == "CHAIN_BROKEN"
+        print("PASS: DB edit reveals 5.00°C versus 10.24°C; deletion breaks chain; reset restores proof")
+    finally:
+        publisher.mutate("reset", 83)
+    assert get(f"/api/events/{block_id}/verify")["verdict"] == "ANCHORED"
+
+
+if __name__ == "__main__":
+    run()

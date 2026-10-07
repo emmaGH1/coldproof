@@ -1,0 +1,59 @@
+#!/usr/bin/env python3
+"""Live outbox restart/recovery test against the running, seeded Compose stack."""
+
+import subprocess
+import sys
+import time
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+
+import requests
+
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "simulator"))
+from publish import canonical, psycopg, readings, runtime, sensor_key  # noqa: E402
+
+config = runtime()
+compose = ["docker", "compose", "--env-file", str(ROOT / "infra/.env"), "-f", str(ROOT / "infra/compose.yaml")]
+key = sensor_key()
+reading = next(readings(key))
+reading["shipmentId"] = "SHP-OUTBOX-" + uuid.uuid4().hex[:8]
+reading["ts"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+reading["sig"] = key.sign(canonical(reading)).hex()
+block_id = None
+try:
+    subprocess.run(compose + ["stop", "web"], check=True)
+    receipt = requests.post(
+        "http://localhost:5555/upload?node=iota-hornet",
+        json={"tag": "coldproof.outbox-test", "message": reading},
+        headers={"Authorization": "Bearer " + config["INGEST_TOKEN"]},
+        timeout=30,
+    )
+    receipt.raise_for_status()
+    block_id = receipt.json()["blockId"]
+    assert receipt.status_code == 202 and not receipt.json()["forwarded"] and receipt.json()["queued"]
+    subprocess.run(compose + ["restart", "messages-api"], check=True)
+    for _ in range(30):
+        try:
+            assert requests.get("http://localhost:5555/health", timeout=3).json()["queued"] >= 1
+            break
+        except (requests.RequestException, AssertionError):
+            time.sleep(0.5)
+    else:
+        raise AssertionError("Durable outbox did not survive API restart")
+    subprocess.run(compose + ["up", "-d", "--wait", "web"], check=True)
+    for _ in range(30):
+        result = requests.get(f"http://localhost:3000/api/events/{block_id}/verify", timeout=10)
+        if result.ok and result.json()["verdict"] == "ANCHORED":
+            break
+        time.sleep(0.5)
+    else:
+        raise AssertionError("Queued event did not recover and verify")
+    print("PASS: real insertion receipt survived API restart while web was offline, then forwarded and verified")
+finally:
+    subprocess.run(compose + ["up", "-d", "--wait", "web"], check=True)
+    if block_id:
+        with psycopg.connect(config["DATABASE_URL"]) as connection:
+            connection.execute("DELETE FROM events WHERE block_id=%s", (block_id,))
+        print("Removed isolated outbox test DB row; its real Tangle block is not deleted.")

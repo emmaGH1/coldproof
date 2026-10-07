@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+"$ROOT/scripts/setup"
+for image in hornet:2.0 inx-coordinator:1.0 inx-dashboard:1.0; do
+  if ! docker image inspect "iotaledger/$image" >/dev/null 2>&1; then
+    docker pull "mirror.gcr.io/iotaledger/$image"
+    docker tag "mirror.gcr.io/iotaledger/$image" "iotaledger/$image"
+  fi
+done
+TANGLE="$ROOT/infra/tangle"
+if [ ! -d "$TANGLE/.git" ]; then
+  git clone https://github.com/eclipse-aerios/iota-tangle.git "$TANGLE"
+  git -C "$TANGLE" checkout 7803e5d73670c663472e51a820ba32411cca919d
+fi
+MAIN="$TANGLE/docker/main"
+if [ ! -f "$MAIN/privatedb/state/coordinator.state" ]; then
+  docker run --rm --user 0 --entrypoint /bin/sh -v "$MAIN:/work" iotaledger/hornet:2.0 \
+    -c 'mkdir -p /work/snapshots/hornet /work/privatedb/hornet /work/privatedb/state; chown -R 65532:65532 /work/snapshots /work/privatedb'
+  docker compose -f "$MAIN/startup.yaml" run --rm create-snapshots
+  docker compose -f "$MAIN/startup.yaml" run --rm bootstrap-network
+fi
+docker compose -f "$MAIN/hornet-main.yaml" up -d
+docker compose --project-name "${COLDPROOF_PROJECT:-coldproof}" --env-file "$ROOT/infra/.env" -f "$ROOT/infra/compose.yaml" up -d --build --wait
