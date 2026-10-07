@@ -100,13 +100,13 @@ npm --prefix web run build
 - Endpoints used: `GET /api/core/v2/blocks/{blockId}` and `GET /api/core/v2/blocks/{blockId}/metadata`.
 - Python signed publisher and Flask/Gunicorn Messages API adaptation with a persistent retry outbox.
 - PostgreSQL 16; Next.js 15/TypeScript traceability API and approved cold-chain instrument UI.
-- [Architecture](docs/ARCHITECTURE.md), [five-minute demo](docs/DEMO.md), [submission draft](docs/SUBMISSION.md).
+- [Architecture](docs/ARCHITECTURE.md), [five-minute demo](docs/DEMO.md), [submission draft](docs/SUBMISSION.md) and [three-slide submission PDF](docs/coldproof-submission-slides.pdf).
 
 This is a **private, coordinator-controlled research Tangle**, not a public production ledger. A valid signature proves that the registered key signed a reading, not that a physical sensor measured it accurately. The database also holds the trusted public-key registry; its administration must be secured in a production system.
 
 Forwarding failures do not undo successful Tangle insertion. The API stores a receipt in an outbox and retries every three seconds; ingestion is idempotent. A crash between Hornet insertion and outbox persistence is not an atomic distributed transaction. An outbox disk failure returns the real receipt with `queued: false`, rather than hiding insertion success.
 
-No MQTT, notifications, auditor receipts, public deployment or real hardware is claimed. The explorer is a single seeded shipment/incident demonstration, not a production fleet management system. Read/verification queries are bounded at 1,000 rows.
+No MQTT, notifications, auditor receipts, public deployment or real hardware is claimed. The explorer is a single seeded shipment/incident demonstration, not a production fleet management system. Read/verification queries are bounded at 1,000 rows. A standalone Vercel deployment would omit required Hornet, Postgres, Python Messages API and persistent-outbox services; run the complete judge demo locally with Docker Compose.
 
 Run only in a trusted local environment. The upstream development stack is not hardened for internet exposure. The existing Next.js/tooling dependency tree has npm audit findings; see [current state](docs/CURRENT_STATE.md). No force upgrade or public production deployment is claimed.
 

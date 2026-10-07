@@ -14,6 +14,7 @@ _Updated 2026-10-07 during the approved core-first sprint._
 - Python publisher signs and chains 96 simulated readings using integer `tempCenti`, resolving the old Python/JavaScript float-canonicalization mismatch.
 - Real REST verification checks solidness, exact content/tag, registered signatures, sequence and previous hash.
 - The workspace polls verification, labels outages and previous results, and shows DB-versus-Tangle differences and detached trace points.
+- The landing screen now identifies the team and challenge, reports the four-check verified count and exposes the signed-sensor-to-verification pipeline without changing the approved instrument design.
 - Seed, SQL tamper, delete and reset scripts exist; reset preserves original receipts/insertion times.
 - Sponsor source/configuration remains unchanged.
 
@@ -29,17 +30,19 @@ _Updated 2026-10-07 during the approved core-first sprint._
 - Reset restored all 96 original rows and the edited event returned `ANCHORED`.
 - TypeScript unit tests (including all 96 Python-generated signatures/hashes), lint, type check and production build passed.
 - Python forwarding unit tests passed with explicitly mocked HTTP; those are separate from the live integration proof.
+- A fresh clone installed dependencies, built the production Compose services, started a fresh sponsor Tangle, seeded 96 new real blocks and passed `scripts/check` plus the live outbox restart/recovery check.
+- The production Compose UI loaded against the fresh Postgres/Hornet state in a desktop browser.
 
 ## Remaining delivery checks
 
-- Production Compose runtime check and clean-clone startup/seed verification are being finalized.
-- Browser inspection/recorded UI testing is not yet claimed for this sprint.
+- The official three-slide submission PDF is prepared in `docs/coldproof-submission-slides.pdf`.
+- No demo video is required or claimed.
 - Submission content is drafted in `SUBMISSION.md`; final submission and merging require Emma's explicit approval.
 
 ## Known limits
 
 - Single seeded shipment and excursion; simulated hardware, real ledger anchoring. No physical deployment or production-readiness claim.
-- No MQTT, alerts, shareable receipts or public deployment.
+- No MQTT, alerts, shareable receipts or public deployment. A standalone Vercel deployment would omit Hornet, Postgres, the Python Messages API and its persistent outbox, so the complete judge demo runs locally through Docker Compose.
 - Reads/verification are capped at 1,000 rows.
 - Outbox persistence is durable, but not atomic with Hornet insertion.
 - Postgres's sensor public-key registry and private coordinator administration require production security controls.

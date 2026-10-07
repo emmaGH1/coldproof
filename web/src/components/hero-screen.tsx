@@ -11,7 +11,7 @@ type Props = {
   points: TracePoint[];
   shipmentId: string;
   sensorId: string;
-  solidCount: number;
+  verifiedCount: number;
   peakIndex: number;
 };
 
@@ -19,7 +19,7 @@ export function HeroScreen({
   points,
   shipmentId,
   sensorId,
-  solidCount,
+  verifiedCount,
   peakIndex,
 }: Props) {
   const [active, setActive] = useState(peakIndex);
@@ -38,7 +38,12 @@ export function HeroScreen({
       <header className="pointer-events-none absolute inset-x-0 top-0 flex flex-wrap items-start justify-between gap-4 px-6 pt-6 sm:px-8">
         <div>
           <div className="text-lg font-semibold tracking-tight [font-stretch:125%]">coldproof</div>
-          <div className="mt-1 font-mono text-[10px] text-muted-foreground">SIMULATED SENSOR · REAL TANGLE BLOCKS</div>
+          <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+            TEAM COLDPROOF · CHALLENGE 2 / O-CEI
+          </div>
+          <div className="mt-1 font-mono text-[10px] text-muted-foreground">
+            SIMULATED SENSOR · REAL TANGLE BLOCKS
+          </div>
           <Link href="/search" className="pointer-events-auto mt-3 inline-block text-xs text-ice underline underline-offset-4">Search evidence</Link>
         </div>
         <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-0.5 text-right font-mono text-[11px] text-muted-foreground">
@@ -46,9 +51,9 @@ export function HeroScreen({
           <dd className="text-foreground">{shipmentId}</dd>
           <dt>sensor</dt>
           <dd className="text-foreground">{sensorId}</dd>
-          <dt>anchored</dt>
+          <dt>verified</dt>
           <dd className="tabular text-foreground">
-            {solidCount}/{points.length} solid on Hornet
+            {verifiedCount}/{points.length} all four checks
           </dd>
         </dl>
       </header>
@@ -100,6 +105,18 @@ export function HeroScreen({
           block {shortId(p.blockId)}
         </div>
       </aside>
+
+      <div className="pointer-events-none absolute bottom-6 left-8 hidden items-center gap-3 font-mono text-[10px] tracking-[0.08em] text-muted-foreground uppercase lg:flex">
+        <span>Signed sensor</span>
+        <span className="text-ice">→</span>
+        <span>Messages API</span>
+        <span className="text-ice">→</span>
+        <span>Hornet</span>
+        <span className="text-ice">→</span>
+        <span>Postgres</span>
+        <span className="text-ice">→</span>
+        <span>Verify</span>
+      </div>
 
     </main>
   );

@@ -2,9 +2,17 @@
 
 This is copy to adapt to the actual form, not an assertion that every field is required. Do not submit, merge, publish a deployment, or contact organizers without explicit approval.
 
+## Slides
+
+The official three-slide PDF is `docs/coldproof-submission-slides.pdf`.
+
 ## Project name
 
 coldproof
+
+## Team name
+
+coldproof (`TEAM_NAME=coldproof` in `infra/.env.example`).
 
 ## Track
 
@@ -51,11 +59,11 @@ Implementation is on the feature branch until Emma approves merging. Link the ex
 - Unit HTTP fixtures are explicitly mocked and are not substituted for live verification.
 - This is a private, trusted-coordinator Tangle, not a production public network or real hardware deployment.
 - MQTT, alerts, auditor receipts and public deployment are not implemented or claimed.
-- Do not claim a recorded browser demo until one exists.
+- No demo video is required or claimed.
 
 ## Demo
 
-Use the five-minute script in `DEMO.md`. Add a recording URL only after capture and review; the Devin live preview is session-authenticated and is not a permanent public judging URL.
+Use the five-minute script in `DEMO.md` for the live judge presentation. The complete system runs locally through Docker Compose; a standalone Vercel deployment would omit required Hornet, Postgres, Python Messages API and persistent-outbox services.
 
 ## License and authorship
 
@@ -66,6 +74,6 @@ Apache-2.0. Sponsor adaptation provenance is in `messages-api/NOTICE`; sponsor T
 1. Review the working app and implementation PR.
 2. Approve merging if the source-of-truth main branch should contain the implementation.
 3. Confirm participant/team fields in TAIKAI; no names or membership details are invented here.
-4. Add any required demo asset.
+4. Upload `docs/coldproof-submission-slides.pdf`.
 5. Approve final submission and submit before **7 October 2026, 14:59 UTC / 16:59 Valencia**.
 6. Prepare for the **8 October, 07:30 UTC / 09:30 Valencia** pitch.

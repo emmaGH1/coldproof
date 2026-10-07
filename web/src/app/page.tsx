@@ -25,7 +25,9 @@ export default async function Home() {
       points={readings}
       shipmentId={shipmentId}
       sensorId={sensorId}
-      solidCount={readings.filter((r) => r.checks.solid === "pass").length}
+      verifiedCount={readings.filter((r) =>
+        Object.values(r.checks).every((check) => check === "pass"),
+      ).length}
       peakIndex={peakIndex}
     />
   );
