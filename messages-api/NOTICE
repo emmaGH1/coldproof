@@ -1,0 +1,11 @@
+coldproof Messages API adaptation
+
+Derived from Eclipse aeriOS iota-messages-api, Apache License 2.0:
+https://github.com/eclipse-aerios/iota-messages-api
+Reference commit: 1ed089a1812cb15025e3775f9c8b7d43fdf519bb
+
+Changes: configured-node insertion, authenticated publishing, compact canonical
+JSON encoding, block-ID receipt parsing, and durable forwarding to the separate
+Postgres-backed traceability application.
+
+The project-wide Apache-2.0 license is in ../LICENSE.

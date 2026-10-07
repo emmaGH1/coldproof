@@ -7,6 +7,7 @@ export type TracePoint = {
   tempC: number;
   blockId: string;
   milestone: number | null;
+  tampered?: boolean;
 };
 
 type TraceProps = {
@@ -71,11 +72,12 @@ export function Trace({
             x1={x(i)}
             x2={x(i)}
             y1={y(p.tempC)}
-            y2={VB}
+            y2={p.tampered ? y(p.tempC) + 60 : VB}
             vectorEffect="non-scaling-stroke"
-            stroke={out(p.tempC) ? "var(--signal)" : "var(--ice)"}
-            strokeOpacity={i === active ? 0.9 : out(p.tempC) ? 0.32 : 0.14}
-            strokeWidth={1}
+            stroke={p.tampered || out(p.tempC) ? "var(--signal)" : "var(--ice)"}
+            strokeOpacity={p.tampered || i === active ? 0.9 : out(p.tempC) ? 0.32 : 0.14}
+            strokeWidth={p.tampered ? 3 : 1}
+            strokeDasharray={p.tampered ? "3 3" : undefined}
           />
         ))}
         {showLimits &&

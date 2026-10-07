@@ -10,3 +10,6 @@ __pycache__/
 *.db
 *.sqlite
 .DS_Store
+.local/
+infra/tangle/
+coverage/
