@@ -32,6 +32,7 @@ _Updated 2026-10-07 during the approved core-first sprint._
 - Python forwarding unit tests passed with explicitly mocked HTTP; those are separate from the live integration proof.
 - A fresh clone installed dependencies, built the production Compose services, started a fresh sponsor Tangle, seeded 96 new real blocks and passed `scripts/check` plus the live outbox restart/recovery check.
 - The production Compose UI loaded against the fresh Postgres/Hornet state in a desktop browser.
+- The original judge-demo runtime was restored with the final UI build, and both live integration scripts passed again; the landing screen displays 96/96 four-check passes.
 
 ## Remaining delivery checks
 

@@ -48,7 +48,7 @@ Postgres is the parallel relational DB (a live `UPDATE` on stage is the tamper m
 - **Checks:** scripted end-to-end test against the local stack.
 
 ### 6. Demo + docs (≈1.5h)
-- **Goal:** deterministic `scripts/seed` + `reset`; README run steps and architecture diagram; DEMO.md 5-min script (no staccato voice lines); recording.
+- **Goal:** deterministic `scripts/seed` + `reset`; README run steps and architecture diagram; DEMO.md 5-min script (no staccato voice lines). Emma confirmed that submission needs slides, not a video.
 - **Accept:** fresh clone → compose up → seed → demo path in under 5 minutes.
 
 ### 7. Reliability + submission (≈1h, buffer)
